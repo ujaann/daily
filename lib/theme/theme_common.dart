@@ -4,16 +4,21 @@ ThemeData getApplicationTheme() {
   return ThemeData(
       scaffoldBackgroundColor: ColorsDaily.white,
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: ColorsDaily.cream,
+        backgroundColor: ColorsDaily.green,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelTextStyle: WidgetStateTextStyle.resolveWith(
+          (_) => TextStyle(color: Colors.white),
+        ),
         indicatorColor: ColorsDaily.purple,
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: ColorsDaily.purple, shape: CircleBorder()),
       appBarTheme: AppBarTheme(
-          backgroundColor: ColorsDaily.cream,
-          shadowColor: ColorsDaily.green,
-          elevation: 4,
-          titleTextStyle:
-              FontsDaily.bigTitle.copyWith(color: ColorsDaily.darkgray)),
+        backgroundColor: ColorsDaily.green,
+        shadowColor: ColorsDaily.green,
+        elevation: 4,
+        titleTextStyle: FontsDaily.bigTitle,
+      ),
       textTheme: Typography.material2021().englishLike.apply(
           displayColor: ColorsDaily.black, bodyColor: ColorsDaily.darkgray),
       inputDecorationTheme: InputDecorationTheme(
