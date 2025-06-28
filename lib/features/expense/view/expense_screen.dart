@@ -7,9 +7,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'expense_screen.g.dart';
 
 @riverpod
-Stream<List<ExpenseEntity>> userExpenses(Ref ref, String userId) {
+List<ExpenseEntity> userExpenses(Ref ref, String userId) {
   final repo = ref.watch(expenseRepoProvider);
-  return repo.watchExpenses(userId);
+  return repo.getExpenses(
+    userId,
+  );
 }
 
 class ExpenseScreen extends ConsumerWidget {
@@ -17,25 +19,21 @@ class ExpenseScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final expensesAsync = ref.watch(userExpensesProvider("Ujan"));
+    final expenses = ref.watch(userExpensesProvider("Ujan"));
 
-    return expensesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => Center(child: Text("Error: $e")),
-      data: (expenses) => ListView.builder(
-        itemCount: expenses.length,
-        itemBuilder: (context, index) {
-          final expense = expenses[index];
+    return ListView.builder(
+      itemCount: expenses.length,
+      itemBuilder: (context, index) {
+        final expense = expenses[index];
 
-          return ListTile(
-            leading: Text('$index'),
-            title: Text(expense.title),
-            trailing: Text(
-              '${expense.type == ExpenseType.expense ? '-' : ''}${expense.amount}',
-            ),
-          );
-        },
-      ),
+        return ListTile(
+          leading: Text('$index'),
+          title: Text(expense.title),
+          trailing: Text(
+            '${expense.type == ExpenseType.expense ? '-' : ''}${expense.amount}',
+          ),
+        );
+      },
     );
   }
 }

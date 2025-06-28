@@ -6,7 +6,7 @@ part of 'expense_screen.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userExpensesHash() => r'ba9c245435640fb5fbb48a11e8a70c10bea8a7ac';
+String _$userExpensesHash() => r'1a3d4c29612000f437ada4aee0b9c7df4e08ebad';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -34,7 +34,7 @@ class _SystemHash {
 const userExpensesProvider = UserExpensesFamily();
 
 /// See also [userExpenses].
-class UserExpensesFamily extends Family<AsyncValue<List<ExpenseEntity>>> {
+class UserExpensesFamily extends Family<List<ExpenseEntity>> {
   /// See also [userExpenses].
   const UserExpensesFamily();
 
@@ -72,8 +72,7 @@ class UserExpensesFamily extends Family<AsyncValue<List<ExpenseEntity>>> {
 }
 
 /// See also [userExpenses].
-class UserExpensesProvider
-    extends AutoDisposeStreamProvider<List<ExpenseEntity>> {
+class UserExpensesProvider extends AutoDisposeProvider<List<ExpenseEntity>> {
   /// See also [userExpenses].
   UserExpensesProvider(
     String userId,
@@ -108,7 +107,7 @@ class UserExpensesProvider
 
   @override
   Override overrideWith(
-    Stream<List<ExpenseEntity>> Function(UserExpensesRef provider) create,
+    List<ExpenseEntity> Function(UserExpensesRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -125,7 +124,7 @@ class UserExpensesProvider
   }
 
   @override
-  AutoDisposeStreamProviderElement<List<ExpenseEntity>> createElement() {
+  AutoDisposeProviderElement<List<ExpenseEntity>> createElement() {
     return _UserExpensesProviderElement(this);
   }
 
@@ -145,13 +144,13 @@ class UserExpensesProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin UserExpensesRef on AutoDisposeStreamProviderRef<List<ExpenseEntity>> {
+mixin UserExpensesRef on AutoDisposeProviderRef<List<ExpenseEntity>> {
   /// The parameter `userId` of this provider.
   String get userId;
 }
 
 class _UserExpensesProviderElement
-    extends AutoDisposeStreamProviderElement<List<ExpenseEntity>>
+    extends AutoDisposeProviderElement<List<ExpenseEntity>>
     with UserExpensesRef {
   _UserExpensesProviderElement(super.provider);
 
