@@ -1,4 +1,5 @@
 import 'package:calendar_view/calendar_view.dart';
+import 'package:daily/theme/theme_common.dart';
 import 'package:daily/util/week_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +13,9 @@ EventController eventController(ref) {
 }
 
 class EventScreen extends ConsumerWidget {
-  const EventScreen({super.key});
+  EventScreen({super.key});
+
+  final GlobalKey<DayViewState> dayState = GlobalKey<DayViewState>();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,21 +23,14 @@ class EventScreen extends ConsumerWidget {
       controller: ref.watch(eventControllerProvider),
       child: Column(
         children: [
-          WeekTabBar(onDateSelected: (_) {}),
+          WeekTabBar(onDateSelected: (selected) {
+            dayState.currentState?.jumpToDate(selected);
+          }),
           Expanded(
             child: DayView(
-              eventTileBuilder: (date, events, boundry, start, end) {
-                // Return your widget to display as event tile.
-                return Container();
-              },
-              fullDayEventBuilder: (events, date) {
-                // Return your widget to display full day event view.
-                return Container();
-              },
-              showVerticalLine: true, // To display live time line in day view.
-              showLiveTimeLineInAllDays:
-                  true, // To display live time line in all pages in day view.
-              minDay: DateTime(1990),
+              key: dayState,
+
+              minDay: DateTime(2024),
               maxDay: DateTime(2050),
 
               eventArranger:
@@ -43,12 +39,13 @@ class EventScreen extends ConsumerWidget {
               onEventDoubleTap: (events, date) => print(events),
               onEventLongTap: (events, date) => print(events),
               onDateLongPress: (date) => print(date),
-              // To set the end hour displayed
-              // hourLinePainter: (lineColor, lineHeight, offset, minuteHeight, showVerticalLine, verticalLineOffset) {
-              //     return //Your custom painter.
-              // },
-              dayTitleBuilder: (date) =>
-                  DayPageHeader(date: date), // To Hide day header
+
+              dayTitleBuilder: (date) => DayPageHeader(
+                date: date,
+                headerStyle: HeaderStyle(
+                  headerTextStyle: FontsDaily.bigTitle,
+                ),
+              ), // To Hide day header
               keepScrollOffset: true,
             ),
           ),

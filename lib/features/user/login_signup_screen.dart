@@ -2,6 +2,7 @@ import 'package:daily/features/user/login_signup_form.dart';
 import 'package:daily/theme/theme_common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 final _isLoginProvider = StateProvider<bool>((ref) {
   return true;
@@ -16,17 +17,33 @@ class LoginSignupScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.teal,
       body: Column(
+        spacing: 16,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Text("Daily",
-              style: TextStyle(color: ColorsDaily.white, fontSize: 32)),
-          const SizedBox(height: 8),
-          Text(toggle ? "Welcome Back" : "Join Us",
-              style: const TextStyle(color: ColorsDaily.white70)),
-          const SizedBox(height: 8),
-          Text(toggle ? "Login to explore" : "Create an account",
-              style: const TextStyle(color: ColorsDaily.white70)),
-          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 14,
+            children: [
+              const Text("Daily",
+                  style: TextStyle(color: ColorsDaily.white, fontSize: 32)),
+              SvgPicture.asset(
+                'assets/Logo.svg',
+                semanticsLabel: "DAily Logo",
+                width: 60,
+                height: 60,
+              )
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 14,
+            children: [
+              Text(toggle ? "Welcome Back" : "Join Us",
+                  style: const TextStyle(color: Colors.white)),
+              Text(toggle ? "Login to explore" : "Create an account",
+                  style: const TextStyle(color: ColorsDaily.white70)),
+            ],
+          ),
           Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),

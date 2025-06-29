@@ -2,6 +2,7 @@ import 'package:daily/entity/expense.dart';
 import 'package:daily/hive/hive_boxes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'expense_repo.g.dart';
@@ -22,22 +23,20 @@ class ExpenseRepo {
 
   ExpenseRepo(this.box);
 
+  // box.add(ExpenseEntity(
+  //     amount: 1000,
+  //     category: 'money',
+  //     date: DateTime.now(),
+  //     type: ExpenseType.expense,
+  //     title: "👌Money",
+  //     userId: "Ujan",
+  //     note: "OOps"));
   List<ExpenseEntity> getExpenses(String userId) {
-    box.add(ExpenseEntity(
-        amount: 1000,
-        category: 'money',
-        date: DateTime.now(),
-        type: ExpenseType.expense,
-        title: "👌Money",
-        userId: "Ujan",
-        note: "OOps"));
-    return box.values.where((e) => e.userId == userId).toList();
-  }
-
-  Stream<List<ExpenseEntity>> watchExpenses(String userId) {
-    return box.watch().map((_) {
-      return box.values.where((e) => e.userId == userId).toList();
-    });
+    return box.values
+        .where(
+          (e) => e.userId == userId,
+        )
+        .toList();
   }
 
   void addExpense(ExpenseEntity expense) {

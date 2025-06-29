@@ -8,6 +8,7 @@ class DailyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // home: LoginSignupScreen(),
       home: NavigationScreen(),
       theme: getApplicationTheme(),
     );
