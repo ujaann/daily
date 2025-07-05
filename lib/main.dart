@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> main() async {
   await hiveInit();
-
+  await notifyInit();
   runApp(ProviderScope(child: const MainApp()));
 }
 
