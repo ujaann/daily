@@ -1,13 +1,17 @@
 import 'package:daily/theme/theme_common.dart';
+import 'package:daily/util/snackbars.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 // Providers
 final amountProvider = StateProvider.autoDispose<String>((ref) => '0');
-
+final newExpenseDateProvider =
+    StateProvider.autoDispose<DateTime>((ref) => DateTime.now());
 final noteControllerProvider =
     StateProvider.autoDispose<TextEditingController>((ref) {
   final controller = TextEditingController();
+
   ref.onDispose(() => controller.dispose());
   return controller;
 });
@@ -16,7 +20,8 @@ final showCustomKeyboardProvider =
     StateProvider.autoDispose<bool>((ref) => true);
 
 class CustomKeyboard extends ConsumerWidget {
-  const CustomKeyboard({super.key});
+  final bool Function() onSubmit;
+  const CustomKeyboard({required this.onSubmit, super.key});
 
   void appendToAmount(WidgetRef ref, String char) {
     final current = ref.read(amountProvider);
@@ -94,7 +99,17 @@ class CustomKeyboard extends ConsumerWidget {
       '7': () => appendToAmount(ref, '7'),
       '8': () => appendToAmount(ref, '8'),
       '9': () => appendToAmount(ref, '9'),
-      'today': () => noteController.text = 'Today',
+      'Date': () async {
+        final selectedDate = await showDatePicker(
+          context: context,
+          initialDate: ref.read(newExpenseDateProvider),
+          firstDate: DateTime(2024),
+          lastDate: DateTime(2050),
+        );
+        if (selectedDate != null) {
+          ref.read(newExpenseDateProvider.notifier).state = selectedDate;
+        }
+      },
       '4': () => appendToAmount(ref, '4'),
       '5': () => appendToAmount(ref, '5'),
       '6': () => appendToAmount(ref, '6'),
@@ -106,24 +121,34 @@ class CustomKeyboard extends ConsumerWidget {
       '.': () => appendDecimal(ref),
       '0': () => appendToAmount(ref, '0'),
       '«': () => backspace(ref),
-      '✓': () {
-        final result =
-            'Note: ${noteController.text} | Amount: ${ref.read(amountProvider)}';
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Submitted: $result')));
+      '✓': () async {
+        await showConfirmationDialog(context: context, title: "Record expense?")
+            .then(
+          (confirm) {
+            if (confirm != null && confirm && context.mounted) {
+              final submitted = onSubmit();
+              if (submitted) {
+                Navigator.pop(context);
+              }
+            }
+          },
+        );
       },
     };
 
     return ColoredBox(
-      color: const Color(0xFF2E2E2E),
+      color: ColorsDaily.white70,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           const SizedBox(height: 20),
-          Text(
-            amount,
-            textAlign: TextAlign.right,
-            style: const TextStyle(color: ColorsDaily.white, fontSize: 32),
+          Padding(
+            padding: const EdgeInsets.only(right: 24.0),
+            child: Text(
+              amount,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 32),
+            ),
           ),
 
           const SizedBox(height: 12),
@@ -134,23 +159,27 @@ class CustomKeyboard extends ConsumerWidget {
             child: Focus(
               onFocusChange: (hasFocus) {
                 // Hide custom keyboard when note is focused
-                ref.read(showCustomKeyboardProvider.notifier).state = !hasFocus;
+                Future.delayed(
+                  Durations.short4,
+                  () => ref.read(showCustomKeyboardProvider.notifier).state =
+                      !hasFocus,
+                );
               },
               child: TextField(
                 controller: noteController,
-                decoration: const InputDecoration(
+                onTapAlwaysCalled: true,
+                onTapOutside: (_) {
+                  FocusScope.of(context).requestFocus(FocusNode());
+                },
+                decoration: InputDecoration(
                   hintText: "Note",
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.white10,
+                  counterText: DateFormat.yMMMd()
+                      .format(ref.watch(newExpenseDateProvider)),
                   border: OutlineInputBorder(),
                 ),
-                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
-
-          const SizedBox(height: 16),
 
           // Conditionally show custom keyboard
           if (showKeyboard)
@@ -158,6 +187,7 @@ class CustomKeyboard extends ConsumerWidget {
               height: 270,
               width: double.infinity,
               child: GridView.count(
+                physics: NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(12),
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
@@ -166,6 +196,10 @@ class CustomKeyboard extends ConsumerWidget {
                 children: buttons.entries.map((entry) {
                   return ElevatedButton(
                     onPressed: entry.value,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: ColorsDaily.black,
+                    ),
                     child: Text(
                       entry.key,
                       style: FontsDaily.titleSubText

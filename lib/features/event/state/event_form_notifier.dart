@@ -2,6 +2,7 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:daily/entity/event.dart';
 import 'package:daily/features/event/data/event_repo.dart';
 import 'package:daily/features/event/event_screen.dart';
+import 'package:daily/notification/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -66,7 +67,10 @@ class EventFormNotifier extends AutoDisposeNotifier<EventFormState> {
 
       ref.read(eventRepoProvider).addEvent(event);
       ref.read(eventControllerProvider).add(event.eventData);
-
+      NotifyService().scheduleNotification(
+          title: event.title,
+          body: "Event is going to start",
+          time: event.startTime);
       state = state.copyWith(isLoading: false);
       if (context.mounted) Navigator.pop(context);
     } catch (e) {
