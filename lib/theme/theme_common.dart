@@ -19,6 +19,17 @@ ThemeData getApplicationTheme() {
         elevation: 4,
         titleTextStyle: FontsDaily.bigTitle,
       ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          iconColor: ColorsDaily.darkgray,
+          foregroundColor: ColorsDaily.darkgray,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+      timePickerTheme:
+          TimePickerThemeData(dayPeriodColor: ColorsDaily.darkgray),
       textTheme: Typography.material2021().englishLike.apply(
           displayColor: ColorsDaily.black, bodyColor: ColorsDaily.darkgray),
       inputDecorationTheme: InputDecorationTheme(
@@ -63,7 +74,7 @@ abstract final class FontsDaily {
   static const bigHeadline = TextStyle(fontSize: 32);
   static const bigTitle = TextStyle(fontSize: 22);
   static const titleSubText = TextStyle(fontSize: 16);
-  static const subText = TextStyle();
+  static const subText = TextStyle(fontSize: 12);
   static const normal = TextStyle();
   static const small = TextStyle();
   static const medium = TextStyle();
@@ -75,7 +86,8 @@ abstract final class ColorsDaily {
   static const cream = Color(0xffEEE5D0);
   static const cream70 = Color(0xb3EEE5D0);
   static const white = Color(0xffFAF8F2);
-  static const white70 = Color(0xb3FAF8F2);
+  // static const white70 = Color(0xb3FAF8F2);
+  static const white70 = Color(0xffeeedf4);
   static const green = Color(0xff69afaf);
   static const purple = Color(0xff612091);
   static const darkgray = Color(0xff3a5c5c);
