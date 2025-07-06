@@ -1,4 +1,6 @@
+import 'package:daily/entity/user.dart';
 import 'package:daily/features/home/navigation_screen.dart';
+import 'package:daily/features/user/data/user_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,7 +41,7 @@ final _confirmControllerProvider =
   return controller;
 });
 
-final rememberMeProvider = StateProvider<bool>((ref) => false);
+final _rememberMeProvider = StateProvider<bool>((ref) => false);
 
 class LoginFormRiverpod extends ConsumerWidget {
   LoginFormRiverpod({super.key, required this.isLogin});
@@ -53,16 +55,22 @@ class LoginFormRiverpod extends ConsumerWidget {
     final emailController = ref.watch(_emailControllerProvider);
     final passwordController = ref.watch(_passwordControllerProvider);
     final confirmController = ref.watch(_confirmControllerProvider);
-    final rememberMe = ref.watch(rememberMeProvider);
-    final rememberMeNotifier = ref.read(rememberMeProvider.notifier);
+    final rememberMe = ref.watch(_rememberMeProvider);
 
-    void submit() {
+    void submit(WidgetRef ref) {
       if (_formKey.currentState?.validate() ?? false) {
-        print('Username: ${usernameController.text}');
-        print('Email: ${emailController.text}');
-        print('Password: ${passwordController.text}');
-        print('Confirm: ${confirmController.text}');
-        print('Remember me: $rememberMe');
+        if (isLogin) {
+          ref
+              .read(userRepoProvider)
+              .login(usernameController.text, passwordController.text);
+        } else {
+          ref.read(userRepoProvider).addUser(UserEntity(
+              username: usernameController.text,
+              email: emailController.text,
+              password: passwordController.text,
+              rememberMe: rememberMe));
+        }
+        Navigator.pushReplacement(context, newRoute)
       }
     }
 
@@ -84,20 +92,23 @@ class LoginFormRiverpod extends ConsumerWidget {
               return null;
             },
           ),
-          TextFormField(
-            controller: emailController,
-            decoration: const InputDecoration(labelText: 'Email'),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Email is required';
-              }
-              if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                return 'Enter a valid email';
-              }
-              return null;
-            },
-            keyboardType: TextInputType.emailAddress,
-          ),
+          if (!isLogin)
+            TextFormField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              validator: (value) {
+                if (isLogin) return null;
+                if (value == null || value.trim().isEmpty) {
+                  return 'Email is required';
+                }
+                if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
+                    .hasMatch(value)) {
+                  return 'Enter a valid email';
+                }
+                return null;
+              },
+              keyboardType: TextInputType.emailAddress,
+            ),
           TextFormField(
             controller: passwordController,
             decoration: const InputDecoration(labelText: 'Password'),
@@ -126,7 +137,8 @@ class LoginFormRiverpod extends ConsumerWidget {
             children: [
               Checkbox(
                 value: rememberMe,
-                onChanged: (val) => rememberMeNotifier.state = val ?? false,
+                onChanged: (val) =>
+                    ref.read(_rememberMeProvider.notifier).state = val ?? false,
               ),
               const Text('Remember me'),
               Spacer(),
@@ -145,7 +157,7 @@ class LoginFormRiverpod extends ConsumerWidget {
             ],
           ),
           ElevatedButton(
-            onPressed: submit,
+            onPressed: () => submit(ref),
             child: const Text('Submit'),
           ),
         ],

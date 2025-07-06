@@ -61,7 +61,6 @@ class ExpenseRepo {
       category: category,
       date: date,
       userId: userId,
-      title: title,
       note: note,
     );
 

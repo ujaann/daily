@@ -1,9 +1,9 @@
 import 'package:daily/features/event/event_screen.dart';
 import 'package:daily/features/event/new_event_screen.dart';
 import 'package:daily/features/expense/view/expense_screen.dart';
+import 'package:daily/features/expense/view/new_expense_screen.dart';
 import 'package:daily/features/setting/setting_screen.dart';
 import 'package:daily/theme/theme_common.dart';
-import 'package:daily/view/floating_new_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -84,7 +84,7 @@ class NavigationScreen extends ConsumerWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FloatingNewPage(text: "Expense"),
+                        builder: (context) => NewExpenseScreen(),
                       ));
                   break;
 
