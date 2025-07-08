@@ -1,4 +1,5 @@
 import 'package:calendar_view/calendar_view.dart';
+import 'package:daily/entity/auth.dart';
 import 'package:daily/entity/event.dart';
 import 'package:daily/entity/expense.dart';
 import 'package:daily/entity/user.dart';
@@ -12,5 +13,6 @@ part 'hive_adapters.g.dart';
   AdapterSpec<EventEntity>(),
   AdapterSpec<RepeatFrequency?>(),
   AdapterSpec<UserEntity>(),
+  AdapterSpec<AuthEntity>(),
 ])
 class HiveAdapters {}

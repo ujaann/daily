@@ -164,22 +164,19 @@ class UserEntityAdapter extends TypeAdapter<UserEntity> {
       username: fields[0] as String,
       email: fields[1] as String,
       password: fields[2] as String,
-      rememberMe: fields[3] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserEntity obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.username)
       ..writeByte(1)
       ..write(obj.email)
       ..writeByte(2)
-      ..write(obj.password)
-      ..writeByte(3)
-      ..write(obj.rememberMe);
+      ..write(obj.password);
   }
 
   @override
@@ -189,6 +186,43 @@ class UserEntityAdapter extends TypeAdapter<UserEntity> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is UserEntityAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class AuthEntityAdapter extends TypeAdapter<AuthEntity> {
+  @override
+  final typeId = 8;
+
+  @override
+  AuthEntity read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return AuthEntity(
+      username: fields[0] as String,
+      rememberMe: fields[1] as bool,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, AuthEntity obj) {
+    writer
+      ..writeByte(2)
+      ..writeByte(0)
+      ..write(obj.username)
+      ..writeByte(1)
+      ..write(obj.rememberMe);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthEntityAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
