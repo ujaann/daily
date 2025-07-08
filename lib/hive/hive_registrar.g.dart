@@ -7,6 +7,7 @@ import 'package:daily/hive/hive_adapters.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(AuthEntityAdapter());
     registerAdapter(EventEntityAdapter());
     registerAdapter(ExpenseEntityAdapter());
     registerAdapter(ExpenseTypeAdapter());
@@ -17,6 +18,7 @@ extension HiveRegistrar on HiveInterface {
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(AuthEntityAdapter());
     registerAdapter(EventEntityAdapter());
     registerAdapter(ExpenseEntityAdapter());
     registerAdapter(ExpenseTypeAdapter());

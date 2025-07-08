@@ -1,5 +1,7 @@
+import 'package:daily/entity/auth.dart';
 import 'package:daily/entity/event.dart';
 import 'package:daily/entity/expense.dart';
+import 'package:daily/entity/user.dart';
 import 'package:daily/hive/hive_boxes.dart';
 import 'package:daily/hive/hive_registrar.g.dart';
 import 'package:daily/notification/notification_service.dart';
@@ -12,7 +14,8 @@ Future<void> hiveInit() async {
 
   await Hive.openBox<ExpenseEntity>(HiveBoxes.expenseBox);
   await Hive.openBox<EventEntity>(HiveBoxes.eventBox);
-  await Hive.openBox<EventEntity>(HiveBoxes.userBox);
+  await Hive.openBox<UserEntity>(HiveBoxes.userBox);
+  await Hive.openBox<AuthEntity>(HiveBoxes.authBox);
 }
 
 Future<void> notifyInit() async {

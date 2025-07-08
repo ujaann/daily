@@ -26,14 +26,34 @@ class UserRepo {
     return box.values.toList();
   }
 
-  UserEntity? getUserByEmail(String email) {
-    return box.values.firstWhere(
-      (u) => u.email == email,
+  bool isUsernameTaken(String username) {
+    final data = box.values.any(
+      (u) => u.username == username,
     );
+    return data;
   }
 
-  Future<void> addUser(UserEntity user) async {
+  UserEntity? getUserByUsername(String username) {
+    try {
+      return box.values.firstWhere((user) => user.username == username);
+    } on StateError catch (_) {
+      return null;
+    }
+  }
+
+  bool isEmailTaken(String email) {
+    final data = box.values.any(
+      (u) => u.email == email,
+    );
+    return data;
+  }
+
+  Future<bool> addUser(UserEntity user) async {
+    if (isUsernameTaken(user.username) || isEmailTaken(user.email)) {
+      return false;
+    }
     await box.add(user);
+    return true;
   }
 
   Future<void> updateUser(
@@ -41,13 +61,11 @@ class UserRepo {
     String? username,
     String? email,
     String? password,
-    bool? rememberMe,
   }) async {
     final updatedUser = user.copyWith(
       username: username,
       email: email,
       password: password,
-      rememberMe: rememberMe,
     );
     await box.put(user.key, updatedUser);
   }
@@ -57,14 +75,16 @@ class UserRepo {
   }
 
   // Login: returns user if credentials match, else null
-  UserEntity? login(String username, String password) {
-    return box.values.firstWhere(
-      (u) => u.username == username && u.password == password,
-    );
-  }
+  Future<UserEntity?> login(
+      String username, String password, bool rememberMe) async {
+    try {
+      final data = box.values.firstWhere(
+        (u) => u.username == username && u.password == password,
+      );
 
-  // Remember toggle
-  Future<void> setRememberMe(UserEntity user, bool rememberMe) async {
-    await updateUser(user, rememberMe: rememberMe);
+      return data;
+    } on Exception catch (_) {
+      return null;
+    }
   }
 }

@@ -13,7 +13,7 @@ class EventEntity extends HiveObject {
   final int? occurrences;
   final DateTime? endDate;
 
-  CalendarEventData<String?> get eventData => CalendarEventData<String?>(
+  CalendarEventData<int?> get eventData => CalendarEventData<int?>(
         date: date,
         title: title,
         startTime: startTime,
@@ -23,6 +23,7 @@ class EventEntity extends HiveObject {
                 startDate: date, occurrences: occurrences, endDate: endDate)
             : null,
         description: description,
+        event: key,
       );
 
   EventEntity({
