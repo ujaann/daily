@@ -10,10 +10,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final _expenseInfo = StateProvider.autoDispose<String?>((ref) => null);
 final _expenseOrIncome = StateProvider.autoDispose<int>((ref) => 0);
 
-class NewExpenseScreen extends ConsumerWidget {
-  const NewExpenseScreen({super.key});
+class EditExpenseScreen extends ConsumerStatefulWidget {
+  final ExpenseEntity expense;
 
-  bool submit(WidgetRef ref, BuildContext context) {
+  const EditExpenseScreen({super.key, required this.expense});
+
+  @override
+  ConsumerState<EditExpenseScreen> createState() => _EditExpenseScreenState();
+}
+
+class _EditExpenseScreenState extends ConsumerState<EditExpenseScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize state based on the passed-in expense
+    Future.microtask(() {
+      ref.read(_expenseInfo.notifier).state = widget.expense.category;
+      ref.read(_expenseOrIncome.notifier).state =
+          widget.expense.type == ExpenseType.income ? 1 : 0;
+      ref
+          .read(calcNotfierProvider.notifier)
+          .init(widget.expense.amount.toString());
+      ref.read(noteControllerProvider).text = widget.expense.note;
+      ref.read(newExpenseDateProvider.notifier).state = widget.expense.date;
+    });
+  }
+
+  bool submit(BuildContext context) {
     final amount = ref.read(calcNotfierProvider);
     final noteController = ref.read(noteControllerProvider);
     final expenseType = ref.read(_expenseOrIncome);
@@ -32,29 +55,32 @@ class NewExpenseScreen extends ConsumerWidget {
       return false;
     }
 
-    ref.read(expenseRepoProvider).addExpense(
-          ExpenseEntity(
-            amount: parsedAmount,
-            category: title,
-            date: date,
-            type: expenseType == 1 ? ExpenseType.income : ExpenseType.expense,
-            userId: "user",
-            note: noteController.text,
-          ),
+    ref.read(expenseRepoProvider).updateExpense(
+          widget.expense,
+          amount: parsedAmount,
+          note: noteController.text,
+          type: expenseType == 1 ? ExpenseType.income : ExpenseType.expense,
+          category: title,
+          date: date,
         );
+
     return true;
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     ref.watch(_expenseOrIncome);
+
+    ref.watch(calcNotfierProvider.notifier);
+    ref.watch(noteControllerProvider);
+    ref.watch(newExpenseDateProvider.notifier);
     return DefaultTabController(
       length: 2,
-      initialIndex: 0,
+      initialIndex: widget.expense.type == ExpenseType.income ? 1 : 0,
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(),
-          title: const Text("New Expense"),
+          title: const Text("Edit Expense"),
           bottom: TabBar(
             labelColor: Colors.white,
             onTap: (value) {
@@ -71,14 +97,14 @@ class NewExpenseScreen extends ConsumerWidget {
           Expanded(
             child: TabBarView(
               children: [
-                ExpenseIcons(),
-                IncomeIcons(),
+                EditExpenseIcons(),
+                EditIncomeIcons(),
               ],
             ),
           ),
           if (ref.watch(_expenseInfo) != null)
             CustomKeyboard(
-              onSubmit: () => submit(ref, context),
+              onSubmit: () => submit(context),
             ),
         ]),
       ),
@@ -86,8 +112,8 @@ class NewExpenseScreen extends ConsumerWidget {
   }
 }
 
-class ExpenseIcons extends ConsumerWidget {
-  const ExpenseIcons({
+class EditExpenseIcons extends ConsumerWidget {
+  const EditExpenseIcons({
     super.key,
   });
 
@@ -127,8 +153,8 @@ class ExpenseIcons extends ConsumerWidget {
   }
 }
 
-class IncomeIcons extends ConsumerWidget {
-  const IncomeIcons({
+class EditIncomeIcons extends ConsumerWidget {
+  const EditIncomeIcons({
     super.key,
   });
 

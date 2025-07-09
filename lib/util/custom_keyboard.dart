@@ -1,11 +1,12 @@
 import 'package:daily/theme/theme_common.dart';
+import 'package:daily/util/custom_keyboard/calc_notifier.dart';
 import 'package:daily/util/snackbars.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 // Providers
-final amountProvider = StateProvider.autoDispose<String>((ref) => '0');
+
 final newExpenseDateProvider =
     StateProvider.autoDispose<DateTime>((ref) => DateTime.now());
 final noteControllerProvider =
@@ -15,90 +16,26 @@ final noteControllerProvider =
   ref.onDispose(() => controller.dispose());
   return controller;
 });
-
 final showCustomKeyboardProvider =
     StateProvider.autoDispose<bool>((ref) => true);
+final calcNotfierProvider =
+    AutoDisposeNotifierProvider<CalcNotifier, String>(CalcNotifier.new);
 
 class CustomKeyboard extends ConsumerWidget {
   final bool Function() onSubmit;
   const CustomKeyboard({required this.onSubmit, super.key});
 
-  void appendToAmount(WidgetRef ref, String char) {
-    final current = ref.read(amountProvider);
-    if (char == '.' && current.contains('.')) return;
-
-    final newVal = current == '0' && char != '.' ? char : current + char;
-    ref.read(amountProvider.notifier).state = newVal;
-  }
-
-  void appendDecimal(WidgetRef ref) {
-    final current = ref.read(amountProvider);
-    final data = current.split('');
-    int? last;
-
-    for (var i = 0; i < data.length; i++) {
-      if (data.elementAt(i) == '.') {
-        last = i;
-      } else if (data.elementAt(i) == '-' || data.elementAt(i) == '+') {
-        last = null;
-      }
-    }
-    if (last == null) {
-      ref.read(amountProvider.notifier).state = '$current.';
-    } else if (current.endsWith('.')) {
-      ref.read(amountProvider.notifier).state =
-          current.substring(0, current.length - 1);
-    }
-  }
-
-  void appendSign(WidgetRef ref, String char) {
-    final current = ref.read(amountProvider);
-    switch (char) {
-      case '+':
-        if (current.endsWith('+')) {
-          ref.read(amountProvider.notifier).state =
-              current.substring(0, current.length - 1);
-        } else if (current.endsWith('-') || current.endsWith('.')) {
-          ref.read(amountProvider.notifier).state =
-              '${current.substring(0, current.length - 1)}+';
-        } else {
-          ref.read(amountProvider.notifier).state = '$current$char';
-        }
-        return;
-      case '-':
-        if (current.endsWith('-')) {
-          ref.read(amountProvider.notifier).state =
-              current.substring(0, current.length - 1);
-        } else if (current.endsWith('+') || current.endsWith('.')) {
-          ref.read(amountProvider.notifier).state =
-              '${current.substring(0, current.length - 1)}-';
-        } else {
-          ref.read(amountProvider.notifier).state = '$current$char';
-        }
-        return;
-
-      default:
-        return;
-    }
-  }
-
-  void backspace(WidgetRef ref) {
-    final current = ref.read(amountProvider);
-    final newVal =
-        current.length <= 1 ? '0' : current.substring(0, current.length - 1);
-    ref.read(amountProvider.notifier).state = newVal;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final amount = ref.watch(amountProvider);
+    final amount = ref.watch(calcNotfierProvider);
+    final calcNotifier = ref.read(calcNotfierProvider.notifier);
     final noteController = ref.watch(noteControllerProvider);
     final showKeyboard = ref.watch(showCustomKeyboardProvider);
 
     final buttons = <String, VoidCallback>{
-      '7': () => appendToAmount(ref, '7'),
-      '8': () => appendToAmount(ref, '8'),
-      '9': () => appendToAmount(ref, '9'),
+      '7': () => calcNotifier.inputNumbers('7'),
+      '8': () => calcNotifier.inputNumbers('8'),
+      '9': () => calcNotifier.inputNumbers('9'),
       'Date': () async {
         final selectedDate = await showDatePicker(
           context: context,
@@ -110,23 +47,26 @@ class CustomKeyboard extends ConsumerWidget {
           ref.read(newExpenseDateProvider.notifier).state = selectedDate;
         }
       },
-      '4': () => appendToAmount(ref, '4'),
-      '5': () => appendToAmount(ref, '5'),
-      '6': () => appendToAmount(ref, '6'),
-      '+': () => appendSign(ref, '+'),
-      '1': () => appendToAmount(ref, '1'),
-      '2': () => appendToAmount(ref, '2'),
-      '3': () => appendToAmount(ref, '3'),
-      '-': () => appendSign(ref, '-'),
-      '.': () => appendDecimal(ref),
-      '0': () => appendToAmount(ref, '0'),
-      '«': () => backspace(ref),
+      '4': () => calcNotifier.inputNumbers('4'),
+      '5': () => calcNotifier.inputNumbers('5'),
+      '6': () => calcNotifier.inputNumbers('6'),
+      '+': () => calcNotifier.inputOperator('+'),
+      '1': () => calcNotifier.inputNumbers('1'),
+      '2': () => calcNotifier.inputNumbers('2'),
+      '3': () => calcNotifier.inputNumbers('3'),
+      '-': () => calcNotifier.inputOperator('-'),
+      '.': () => calcNotifier.decimalPoint(),
+      '0': () => calcNotifier.inputNumbers('0'),
+      '«': () => calcNotifier.backspace(),
       '✓': () async {
         await showConfirmationDialog(context: context, title: "Record expense?")
             .then(
           (confirm) {
+            calcNotifier.getValue();
+
             if (confirm != null && confirm && context.mounted) {
               final submitted = onSubmit();
+              print(amount);
               if (submitted) {
                 Navigator.pop(context);
               }
@@ -196,10 +136,12 @@ class CustomKeyboard extends ConsumerWidget {
                 children: buttons.entries.map((entry) {
                   return ElevatedButton(
                     onPressed: entry.value,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: ColorsDaily.black,
-                    ),
+                    style: (entry.key == '✓' || entry.key == 'Date')
+                        ? null
+                        : ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: ColorsDaily.black,
+                          ),
                     child: Text(
                       entry.key,
                       style: FontsDaily.titleSubText
