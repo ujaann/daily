@@ -19,6 +19,15 @@ ThemeData getApplicationTheme() {
         elevation: 4,
         titleTextStyle: FontsDaily.bigTitle,
       ),
+      toggleButtonsTheme: ToggleButtonsThemeData(
+        borderRadius: BorderRadius.circular(12),
+        borderWidth: 4,
+        borderColor: Colors.grey.shade300,
+        selectedColor: ColorsDaily.cream,
+        fillColor: ColorsDaily.purple,
+        color: ColorsDaily.black,
+        constraints: const BoxConstraints(minWidth: 120, minHeight: 40),
+      ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           iconColor: ColorsDaily.darkgray,
@@ -28,6 +37,8 @@ ThemeData getApplicationTheme() {
           visualDensity: VisualDensity.compact,
         ),
       ),
+      popupMenuTheme: PopupMenuThemeData(
+          position: PopupMenuPosition.under, color: ColorsDaily.white70),
       timePickerTheme:
           TimePickerThemeData(dayPeriodColor: ColorsDaily.darkgray),
       textTheme: Typography.material2021().englishLike.apply(
@@ -71,7 +82,7 @@ ThemeData getApplicationTheme() {
 }
 
 abstract final class FontsDaily {
-  static const bigHeadline = TextStyle(fontSize: 32);
+  static const bigHeadline = TextStyle(fontSize: 42);
   static const bigTitle = TextStyle(fontSize: 22);
   static const titleSubText = TextStyle(fontSize: 16);
   static const subText = TextStyle(fontSize: 12);
