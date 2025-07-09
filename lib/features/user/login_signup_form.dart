@@ -1,6 +1,8 @@
+import 'package:daily/auth/auth_service.dart';
 import 'package:daily/entity/user.dart';
 import 'package:daily/features/home/navigation_screen.dart';
 import 'package:daily/features/user/data/user_repo.dart';
+import 'package:daily/util/snackbars.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,7 +43,7 @@ final _confirmControllerProvider =
   return controller;
 });
 
-final _rememberMeProvider = StateProvider<bool>((ref) => false);
+final _rememberMeProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 class LoginFormRiverpod extends ConsumerWidget {
   LoginFormRiverpod({super.key, required this.isLogin});
@@ -57,20 +59,43 @@ class LoginFormRiverpod extends ConsumerWidget {
     final confirmController = ref.watch(_confirmControllerProvider);
     final rememberMe = ref.watch(_rememberMeProvider);
 
-    void submit(WidgetRef ref) {
+    Future<void> submit(WidgetRef ref) async {
       if (_formKey.currentState?.validate() ?? false) {
         if (isLogin) {
-          ref
-              .read(userRepoProvider)
-              .login(usernameController.text, passwordController.text);
+          final login = await ref.read(userRepoProvider).login(
+              usernameController.text, passwordController.text, rememberMe);
+          if (login != null) {
+            ref
+                .read(authServiceProvider.notifier)
+                .storeAuth(username: login.username, rememberMe: rememberMe);
+          } else if (context.mounted) {
+            showErrorSnackbar(context, "Invalid credentials");
+            return;
+          }
         } else {
-          ref.read(userRepoProvider).addUser(UserEntity(
-              username: usernameController.text,
-              email: emailController.text,
-              password: passwordController.text,
-              rememberMe: rememberMe));
+          final user = UserEntity(
+            username: usernameController.text,
+            email: emailController.text,
+            password: passwordController.text,
+          );
+          final register = await ref.read(userRepoProvider).addUser(user);
+          if (register) {
+            ref
+                .read(authServiceProvider.notifier)
+                .storeAuth(username: user.username, rememberMe: rememberMe);
+          } else if (context.mounted) {
+            showErrorSnackbar(context, "User already exists");
+            return;
+          }
         }
-        Navigator.pushReplacement(context, newRoute)
+        if (context.mounted) {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NavigationScreen(),
+              ));
+          return;
+        }
       }
     }
 
@@ -79,6 +104,9 @@ class LoginFormRiverpod extends ConsumerWidget {
       child: Column(
         spacing: 12,
         children: [
+          const SizedBox(
+            height: 12,
+          ),
           TextFormField(
             controller: usernameController,
             decoration: const InputDecoration(labelText: 'Username'),
@@ -142,18 +170,18 @@ class LoginFormRiverpod extends ConsumerWidget {
               ),
               const Text('Remember me'),
               Spacer(),
-              TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => NavigationScreen(),
-                        ));
-                  },
-                  child: Text(
-                    "Forgot Password?",
-                    style: TextStyle(decoration: TextDecoration.underline),
-                  )),
+              // TextButton(
+              //     onPressed: () {
+              //       Navigator.pushReplacement(
+              //           context,
+              //           MaterialPageRoute(
+              //             builder: (context) => NavigationScreen(),
+              //           ));
+              //     },
+              //     child: Text(
+              //       "Forgot Password?",
+              //       style: TextStyle(decoration: TextDecoration.underline),
+              //     )),
             ],
           ),
           ElevatedButton(

@@ -24,11 +24,11 @@ class LoginSignupScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 14,
             children: [
-              const Text("Daily",
-                  style: TextStyle(color: ColorsDaily.white, fontSize: 32)),
+              Text("Daily",
+                  style: FontsDaily.bigHeadline.copyWith(color: Colors.white)),
               SvgPicture.asset(
                 'assets/Logo.svg',
-                semanticsLabel: "DAily Logo",
+                semanticsLabel: "Daily Logo",
                 width: 60,
                 height: 60,
               )
@@ -78,13 +78,6 @@ class ToggleLoginSignup extends ConsumerWidget {
         onPressed: (index) {
           ref.read(_isLoginProvider.notifier).state = index == 0;
         },
-        borderRadius: BorderRadius.circular(12),
-        borderWidth: 4,
-        borderColor: Colors.grey.shade300,
-        selectedColor: ColorsDaily.cream,
-        fillColor: ColorsDaily.purple,
-        color: ColorsDaily.black,
-        constraints: const BoxConstraints(minWidth: 120, minHeight: 40),
         children: [Text("Log In"), Text("Sign Up")]);
   }
 }
