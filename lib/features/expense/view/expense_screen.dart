@@ -1,5 +1,8 @@
+import 'package:calendar_view/calendar_view.dart';
+import 'package:daily/auth/auth_service.dart';
 import 'package:daily/entity/expense.dart';
 import 'package:daily/features/expense/data/expense_repo.dart';
+import 'package:daily/features/expense/view/expense_details_screen.dart';
 import 'package:daily/theme/theme_common.dart';
 import 'package:daily/util/dependencies.dart';
 import 'package:daily/util/snackbars.dart';
@@ -19,9 +22,7 @@ final _selectedMonthProvider = StateProvider.autoDispose<DateTime>((ref) {
 @riverpod
 List<ExpenseEntity> userExpenses(Ref ref, String userId) {
   final repo = ref.watch(expenseRepoProvider);
-  return repo.getExpenses(
-    userId,
-  );
+  return repo.getExpenses();
 }
 
 class ExpenseScreen extends ConsumerWidget {
@@ -30,50 +31,102 @@ class ExpenseScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final box = ref.watch(expenseRepoProvider).box;
-
+    final now = ref.watch(_selectedMonthProvider);
+    final user = ref.watch(authServiceProvider);
     return ValueListenableBuilder(
         valueListenable: box.listenable(),
         builder: (context, box, _) {
-          final expenses = box.values.where((e) => e.userId == "Ujan");
+          if (box.isEmpty) {
+            return Flexible(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                  Icon(
+                    Icons.sticky_note_2,
+                    size: 40,
+                  ),
+                  Text('No expenses'),
+                ]));
+          }
+          final expenses = box.values
+              .where((e) =>
+                  user != null &&
+                  e.userId == user.username &&
+                  e.date.year == now.year &&
+                  e.date.month == now.month)
+              .toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
+          if (expenses.isEmpty) {
+            return Flexible(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.sticky_note_2,
+                  size: 40,
+                ),
+                Text('No expenses'),
+              ],
+            ));
+          }
+
           return Column(
             children: [
               ExpenseInfo(
                 expenses: expenses.toList(),
               ),
-              if (expenses.isEmpty) ...{
-                Flexible(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.sticky_note_2,
-                      size: 40,
-                    ),
-                    Text('No expenses'),
-                  ],
-                ))
-              } else
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: expenses.length,
-                    itemBuilder: (context, index) {
-                      final expense = expenses.elementAt(index);
+              Expanded(
+                child: ListView.builder(
+                  itemCount: expenses.length,
+                  itemBuilder: (context, index) {
+                    final expense = expenses.elementAt(index);
+                    final icon = switch (expense.type) {
+                      ExpenseType.expense => expenseIconMap[expense.category],
+                      ExpenseType.income => incomeIconMap[expense.category],
+                    };
 
-                      final icon = switch (expense.type) {
-                        ExpenseType.expense => expenseIconMap[expense.category],
-                        ExpenseType.income => incomeIconMap[expense.category],
-                      };
+                    // Track last grouped date locally
+                    final isFirst = index == 0;
+                    final previous = !isFirst ? expenses[index - 1] : null;
 
-                      return ListTile(
-                        leading: Icon(icon),
-                        title: Text(expense.note),
-                        trailing: Text(
-                          '${expense.type == ExpenseType.expense ? '-' : ''}${expense.amount}',
+                    final shouldAddHeader = isFirst ||
+                        !(expense.date.compareWithoutTime(previous!.date));
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (shouldAddHeader)
+                          Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Text(
+                                DateFormat('MMM d, yyyy').format(expense.date),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[700],
+                                    ),
+                              )),
+                        ListTile(
+                          leading: Icon(icon),
+                          title: Text(expense.note),
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ExpenseDetailsScreen(expense: expense),
+                              )),
+                          trailing: Text(
+                            '${expense.type == ExpenseType.expense ? '-' : ''}${expense.amount}',
+                          ),
                         ),
-                      );
-                    },
-                  ),
+                      ],
+                    );
+                  },
                 ),
+              ),
             ],
           );
         });

@@ -1,8 +1,11 @@
+import 'package:calendar_view/calendar_view.dart';
+import 'package:daily/auth/auth_service.dart';
 import 'package:daily/entity/expense.dart';
 import 'package:daily/hive/hive_boxes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'expense_repo.g.dart';
@@ -15,32 +18,42 @@ Box<ExpenseEntity> _expenseBox(Ref ref) {
 @riverpod
 ExpenseRepo expenseRepo(Ref ref) {
   final box = ref.watch(_expenseBoxProvider);
-  return ExpenseRepo(box);
+  final auth = ref.watch(authServiceProvider);
+  final userId = auth?.username;
+  return ExpenseRepo(box, userId);
 }
 
 class ExpenseRepo {
   final Box<ExpenseEntity> box;
+  final String? userId;
 
-  ExpenseRepo(this.box);
+  ExpenseRepo(this.box, this.userId);
 
-  // box.add(ExpenseEntity(
-  //     amount: 1000,
-  //     category: 'money',
-  //     date: DateTime.now(),
-  //     type: ExpenseType.expense,
-  //     title: "👌Money",
-  //     userId: "Ujan",
-  //     note: "OOps"));
-  List<ExpenseEntity> getExpenses(String userId) {
-    return box.values
-        .where(
-          (e) => e.userId == userId,
-        )
-        .toList();
+  List<ExpenseEntity> getExpenses() {
+    if (userId == null) return [];
+    return box.values.where((e) => e.userId == userId).toList();
+  }
+
+  Map<WeekDays, List<ExpenseEntity>> getWeeklyExpenses(
+      DateTime start, DateTime end) {
+    if (userId == null) return {};
+
+    // Initialize map with empty lists for each weekday
+    final Map<WeekDays, List<ExpenseEntity>> weeklyExpenses = {
+      for (var day in WeekDays.values) day: [],
+    };
+
+    for (final expense in box.values) {
+      if (expense.userId == userId && expense.date.isBetween(start, end)) {
+        final weekday = WeekDays.values[expense.date.weekday - 1];
+        weeklyExpenses[weekday]?.add(expense);
+      }
+    }
+    return weeklyExpenses;
   }
 
   void addExpense(ExpenseEntity expense) {
-    box.add(expense);
+    box.add(expense.copyWith(userId: userId));
   }
 
   Future<void> deleteExpense(ExpenseEntity expense) async {
