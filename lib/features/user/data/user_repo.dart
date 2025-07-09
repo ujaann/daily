@@ -78,9 +78,11 @@ class UserRepo {
   Future<UserEntity?> login(
       String username, String password, bool rememberMe) async {
     try {
-      final data = box.values.firstWhere(
-        (u) => u.username == username && u.password == password,
-      );
+      final data = box.values
+          .where(
+            (u) => u.username == username && u.password == password,
+          )
+          .firstOrNull;
 
       return data;
     } on Exception catch (_) {

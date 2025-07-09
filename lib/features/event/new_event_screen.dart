@@ -1,4 +1,5 @@
 import 'package:calendar_view/calendar_view.dart';
+import 'package:daily/auth/auth_service.dart';
 import 'package:daily/features/event/state/event_form_notifier.dart';
 import 'package:daily/theme/theme_common.dart';
 import 'package:daily/util/snackbars.dart';
@@ -18,6 +19,7 @@ class NewEventScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(_eventNotifierProvider);
     final notifier = ref.read(_eventNotifierProvider.notifier);
+    final user = ref.watch(authServiceProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (form.errorMessage != null && context.mounted) {
@@ -60,6 +62,7 @@ class NewEventScreen extends ConsumerWidget {
                       if (result) {
                         notifier.submit(
                           context: context,
+                          userId: user?.username,
                         );
                       }
                     }
@@ -70,158 +73,162 @@ class NewEventScreen extends ConsumerWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          spacing: 14,
-          children: [
-            Row(
-              spacing: 12,
-              children: [
-                const Icon(Icons.create),
-                Flexible(
-                  child: TextField(
-                    onChanged: (value) => notifier.setTitle(value),
-                    decoration: const InputDecoration(hintText: "Title"),
+        child: SingleChildScrollView(
+          child: Column(
+            spacing: 14,
+            children: [
+              Row(
+                spacing: 12,
+                children: [
+                  const Icon(Icons.create),
+                  Flexible(
+                    child: TextField(
+                      onChanged: (value) => notifier.setTitle(value),
+                      decoration: const InputDecoration(hintText: "Title"),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Row(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: Icon(Icons.access_time),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await showDatePicker(
-                      context: context,
-                      initialDate: form.date,
-                      firstDate: DateTime(2024),
-                      lastDate: DateTime(2050),
-                    ).then((selectedDate) {
-                      final endDate = form.endDate;
-                      if (selectedDate != null && context.mounted) {
-                        if (endDate == null) {
-                          notifier.setDate(selectedDate);
-                        } else if (selectedDate.isBefore(endDate) &&
-                            !form.useOccurrences) {
-                          showErrorSnackbar(context, "End date");
-                          return;
+                ],
+              ),
+              Row(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12.0),
+                    child: Icon(Icons.access_time),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await showDatePicker(
+                        context: context,
+                        initialDate: form.date,
+                        firstDate: DateTime(2024),
+                        lastDate: DateTime(2050),
+                      ).then((selectedDate) {
+                        final endDate = form.endDate;
+                        if (selectedDate != null && context.mounted) {
+                          if (endDate == null) {
+                            notifier.setDate(selectedDate);
+                          } else if (selectedDate.isBefore(endDate) &&
+                              !form.useOccurrences) {
+                            showErrorSnackbar(context, "End date");
+                            return;
+                          }
+                          notifier.setEndDate(selectedDate);
                         }
-                        notifier.setDate(selectedDate);
-                      }
-                    });
-                  },
-                  child: Text(DateFormat.yMMMd().format(form.date)),
-                ),
-                Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        await showTimePicker(
-                          context: context,
-                          initialTime: form.startTime,
-                        ).then(
-                          (selectedTime) {
-                            final endTime = form.endTime;
-                            if (selectedTime != null) {
-                              if (selectedTime.isAfter(endTime) &&
-                                  context.mounted) {
-                                showErrorSnackbar(context,
-                                    "End time must be after start time");
-                                return;
-                              }
-                              notifier.setStartTime(selectedTime);
-                            }
-                          },
-                        );
-                      },
-                      child: Text(form.startTime.format(context)),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await showTimePicker(
-                                context: context, initialTime: form.endTime)
-                            .then(
-                          (selectedTime) {
-                            final startTime = form.startTime;
-                            if (selectedTime != null) {
-                              if (selectedTime.isBefore(startTime) &&
-                                  context.mounted) {
-                                showErrorSnackbar(context,
-                                    "End time must be after start time");
-                                return;
-                              }
-                              notifier.setEndTime(selectedTime);
-                            }
-                          },
-                        );
-                      },
-                      child: Text(form.endTime.format(context)),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            Row(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: const Icon(Icons.repeat),
-                ),
-                Flexible(
-                  child: DropdownMenu<RepeatFrequency>(
-                      initialSelection: RepeatFrequency.doNotRepeat,
-                      onSelected: (value) => notifier.setRepeatFrequency(value),
-                      helperText: "Repeat",
-                      dropdownMenuEntries: [
-                        DropdownMenuEntry(
-                            value: RepeatFrequency.doNotRepeat,
-                            label: "Don't repeat"),
-                        DropdownMenuEntry(
-                            value: RepeatFrequency.daily, label: "Daily"),
-                        DropdownMenuEntry(
-                            value: RepeatFrequency.monthly, label: "Monthly"),
-                        DropdownMenuEntry(
-                            value: RepeatFrequency.weekly, label: "Weekly"),
-                        DropdownMenuEntry(
-                            value: RepeatFrequency.yearly, label: "Yearly"),
-                      ]),
-                ),
-                Flexible(child: Toggle())
-              ],
-            ),
-            Row(
-              spacing: 12,
-              children: [
-                const Icon(Icons.notifications),
-                Switch(
-                  value: form.enableNotifications,
-                  onChanged: (value) => notifier.toggleNotification(value),
-                ),
-                Text("Enable notifications"),
-              ],
-            ),
-            Row(
-              spacing: 12,
-              children: [
-                const Icon(Icons.notes),
-                Flexible(
-                  child: TextField(
-                    onChanged: (value) => notifier.setDescription(value),
-                    minLines: 3,
-                    maxLines: 5,
-                    keyboardType: TextInputType.multiline,
-                    decoration: const InputDecoration(hintText: "Description"),
+                      });
+                    },
+                    child: Text(DateFormat.yMMMd().format(form.date)),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          await showTimePicker(
+                            context: context,
+                            initialTime: form.startTime,
+                          ).then(
+                            (selectedTime) {
+                              final endTime = form.endTime;
+                              if (selectedTime != null) {
+                                if (selectedTime.isAfter(endTime) &&
+                                    context.mounted) {
+                                  showErrorSnackbar(context,
+                                      "End time must be after start time");
+                                  return;
+                                }
+                                notifier.setStartTime(selectedTime);
+                              }
+                            },
+                          );
+                        },
+                        child: Text(form.startTime.format(context)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await showTimePicker(
+                                  context: context, initialTime: form.endTime)
+                              .then(
+                            (selectedTime) {
+                              final startTime = form.startTime;
+                              if (selectedTime != null) {
+                                if (selectedTime.isBefore(startTime) &&
+                                    context.mounted) {
+                                  showErrorSnackbar(context,
+                                      "End time must be after start time");
+                                  return;
+                                }
+                                notifier.setEndTime(selectedTime);
+                              }
+                            },
+                          );
+                        },
+                        child: Text(form.endTime.format(context)),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+              Row(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12.0),
+                    child: const Icon(Icons.repeat),
+                  ),
+                  Flexible(
+                    child: DropdownMenu<RepeatFrequency>(
+                        initialSelection: RepeatFrequency.doNotRepeat,
+                        onSelected: (value) =>
+                            notifier.setRepeatFrequency(value),
+                        helperText: "Repeat",
+                        dropdownMenuEntries: [
+                          DropdownMenuEntry(
+                              value: RepeatFrequency.doNotRepeat,
+                              label: "Don't repeat"),
+                          DropdownMenuEntry(
+                              value: RepeatFrequency.daily, label: "Daily"),
+                          DropdownMenuEntry(
+                              value: RepeatFrequency.monthly, label: "Monthly"),
+                          DropdownMenuEntry(
+                              value: RepeatFrequency.weekly, label: "Weekly"),
+                          DropdownMenuEntry(
+                              value: RepeatFrequency.yearly, label: "Yearly"),
+                        ]),
+                  ),
+                  Flexible(child: Toggle())
+                ],
+              ),
+              Row(
+                spacing: 12,
+                children: [
+                  const Icon(Icons.notifications),
+                  Switch(
+                    value: form.enableNotifications,
+                    onChanged: (value) => notifier.toggleNotification(value),
+                  ),
+                  Text("Enable notifications"),
+                ],
+              ),
+              Row(
+                spacing: 12,
+                children: [
+                  const Icon(Icons.notes),
+                  Flexible(
+                    child: TextField(
+                      onChanged: (value) => notifier.setDescription(value),
+                      minLines: 3,
+                      maxLines: 5,
+                      keyboardType: TextInputType.multiline,
+                      decoration:
+                          const InputDecoration(hintText: "Description"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -235,6 +242,9 @@ class Toggle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final endDate = ref.watch(_eventNotifierProvider.select(
+      (value) => value.endDate,
+    ));
     return Column(
       spacing: 6,
       children: [
@@ -249,23 +259,24 @@ class Toggle extends ConsumerWidget {
                     .toggleUseOccurrences(true);
               },
             ),
-            SizedBox(
-                width: 100,
-                height: 60,
-                child: TextField(
-                  onChanged: (value) => ref
-                      .read(_eventNotifierProvider.notifier)
-                      .setOccurrences(int.tryParse(value)),
-                  enabled: ref.watch(_eventNotifierProvider).useOccurrences,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  keyboardType: TextInputType.number,
-                  cursorHeight: 20,
-                  decoration: const InputDecoration(
-                    counterText: "Occurence",
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 2, horizontal: 12),
-                  ),
-                )),
+            Flexible(
+              child: SizedBox(
+                  height: 60,
+                  child: TextField(
+                    onChanged: (value) => ref
+                        .read(_eventNotifierProvider.notifier)
+                        .setOccurrences(int.tryParse(value)),
+                    enabled: ref.watch(_eventNotifierProvider).useOccurrences,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    keyboardType: TextInputType.number,
+                    cursorHeight: 20,
+                    decoration: const InputDecoration(
+                      counterText: "Occurence",
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 2, horizontal: 12),
+                    ),
+                  )),
+            ),
           ],
         ),
         Row(
@@ -279,53 +290,52 @@ class Toggle extends ConsumerWidget {
                     .toggleUseOccurrences(false);
               },
             ),
-            SizedBox(
-                width: 100,
+            Flexible(
                 child: InputDecorator(
-                  decoration: InputDecoration(
-                    floatingLabelAlignment: FloatingLabelAlignment.center,
-                    counterText: "End Date",
-                    contentPadding: EdgeInsets.all(0.0),
-                    enabledBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                  ),
-                  child: ElevatedButton(
-                      onPressed: ref
-                              .watch(_eventNotifierProvider)
-                              .useOccurrences
-                          ? null
-                          : () async {
-                              await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2024),
-                                lastDate: DateTime(2050),
-                              ).then((selectedDate) {
-                                final endDate =
-                                    ref.read(_eventNotifierProvider).endDate;
-                                if (selectedDate != null && context.mounted) {
-                                  if (endDate == null) {
-                                    ref
-                                        .read(_eventNotifierProvider.notifier)
-                                        .setDate(selectedDate);
-                                  } else if (selectedDate.isBefore(endDate) &&
-                                      !ref
-                                          .read(_eventNotifierProvider)
-                                          .useOccurrences) {
-                                    showErrorSnackbar(context, "End date");
-                                    return;
-                                  }
-                                  ref
-                                      .read(_eventNotifierProvider.notifier)
-                                      .setDate(selectedDate);
-                                }
-                              });
-                            },
-                      child: Text(
-                        "End Date",
-                        style: FontsDaily.subText,
-                      )),
-                ))
+              decoration: InputDecoration(
+                floatingLabelAlignment: FloatingLabelAlignment.center,
+                counterText: "End Date",
+                contentPadding: EdgeInsets.all(0.0),
+                enabledBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+              ),
+              child: ElevatedButton(
+                  onPressed: ref.watch(_eventNotifierProvider).useOccurrences
+                      ? null
+                      : () async {
+                          await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2024),
+                            lastDate: DateTime(2050),
+                          ).then((selectedDate) {
+                            final endDate =
+                                ref.read(_eventNotifierProvider).endDate;
+                            if (selectedDate != null && context.mounted) {
+                              if (endDate == null) {
+                                ref
+                                    .read(_eventNotifierProvider.notifier)
+                                    .setDate(selectedDate);
+                              } else if (selectedDate.isBefore(endDate) &&
+                                  !ref
+                                      .read(_eventNotifierProvider)
+                                      .useOccurrences) {
+                                showErrorSnackbar(context, "End date");
+                                return;
+                              }
+                              ref
+                                  .read(_eventNotifierProvider.notifier)
+                                  .setEndDate(selectedDate);
+                            }
+                          });
+                        },
+                  child: Text(
+                    (endDate == null)
+                        ? "End Date"
+                        : DateFormat.yMMMd().format(endDate),
+                    style: FontsDaily.subText,
+                  )),
+            ))
           ],
         ),
       ],

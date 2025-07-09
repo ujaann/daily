@@ -38,7 +38,7 @@ class NewExpenseScreen extends ConsumerWidget {
             category: title,
             date: date,
             type: expenseType == 1 ? ExpenseType.income : ExpenseType.expense,
-            userId: "Ujan",
+            userId: "user",
             note: noteController.text,
           ),
         );
@@ -47,6 +47,7 @@ class NewExpenseScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(_expenseOrIncome);
     return DefaultTabController(
       length: 2,
       initialIndex: 0,
