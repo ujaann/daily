@@ -1,4 +1,5 @@
 import 'package:calendar_view/calendar_view.dart';
+import 'package:daily/auth/auth_service.dart';
 import 'package:daily/entity/event.dart';
 import 'package:daily/hive/hive_boxes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,15 +16,19 @@ Box<EventEntity> _eventBox(Ref ref) {
 @riverpod
 EventRepo eventRepo(Ref ref) {
   final box = ref.watch(_eventBoxProvider);
-  return EventRepo(box);
+  final auth = ref.watch(authServiceProvider);
+  final userId = auth?.username;
+  return EventRepo(box, userId);
 }
 
 class EventRepo {
   final Box<EventEntity> box;
+  final String? userId;
 
-  EventRepo(this.box);
+  EventRepo(this.box, this.userId);
 
-  List<EventEntity> getEvents(String userId) {
+  List<EventEntity> getEvents() {
+    if (userId == null) return [];
     return box.values.where((e) => e.userId == userId).toList();
   }
 
@@ -41,7 +46,6 @@ class EventRepo {
     DateTime? startTime,
     DateTime? endTime,
     DateTime? date,
-    String? userId,
     String? description,
     RepeatFrequency? repeatFrequency,
     int? occurrences,
@@ -57,7 +61,6 @@ class EventRepo {
       occurrences: occurrences ?? event.occurrences,
       endDate: endDate ?? event.endDate,
 
-      userId: userId,
       // Add other fields as needed
     );
     await box.put(event.key, updatedEvent);
