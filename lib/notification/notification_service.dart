@@ -61,7 +61,9 @@ class NotifyService {
     required DateTime time,
     RepeatFrequency? repeatFrequency,
   }) async {
-    final now = tz.TZDateTime.from(time, tz.local);
+    final rightNow = DateTime.now().add(const Duration(seconds: 4));
+    final now =
+        tz.TZDateTime.from(time.isBefore(rightNow) ? rightNow : time, tz.local);
     await notificationsPlugin.zonedSchedule(
       id, title, body, now, notificationDetails(),
 

@@ -2,20 +2,6 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:daily/theme/theme_common.dart';
 import 'package:flutter/material.dart';
 
-List<DateTime> getCurrentWeekDates(DateTime today) {
-  final sunday = today.firstDayOfWeek(start: WeekDays.sunday);
-  final saturday = today.lastDayOfWeek(start: WeekDays.sunday);
-  return [
-    sunday,
-    sunday.add(Duration(days: 1)),
-    sunday.add(Duration(days: 2)),
-    sunday.add(Duration(days: 3)),
-    sunday.add(Duration(days: 4)),
-    sunday.add(Duration(days: 5)),
-    saturday
-  ];
-}
-
 class WeekTabBar extends StatefulWidget {
   final void Function(DateTime selectedDate) onDateSelected;
 
@@ -34,7 +20,7 @@ class _WeekTabBarState extends State<WeekTabBar>
   void initState() {
     super.initState();
     final today = DateTime.now();
-    _weekDates = getCurrentWeekDates(today);
+    _weekDates = today.datesOfWeek();
     final initialIndex = _weekDates.indexWhere((d) =>
         d.year == today.year && d.month == today.month && d.day == today.day);
 
