@@ -34,6 +34,14 @@ class ExpenseRepo {
     return box.values.where((e) => e.userId == userId).toList();
   }
 
+  List<ExpenseEntity> getCurrentMonthExpenses() {
+    final month = DateTime.now();
+
+    return getExpenses().where((e) {
+      return e.date.getMonthDifference(month) == 1;
+    }).toList();
+  }
+
   Map<WeekDays, List<ExpenseEntity>> getWeeklyExpenses(
       DateTime start, DateTime end) {
     if (userId == null) return {};

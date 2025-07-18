@@ -65,3 +65,22 @@ Future<bool?> showConfirmationDialog({
     ),
   );
 }
+
+showLoadingDialog(
+  BuildContext context,
+) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: const CircularProgressIndicator(
+          constraints: BoxConstraints(maxWidth: 40, maxHeight: 40),
+        ),
+      ),
+    ),
+  );
+}

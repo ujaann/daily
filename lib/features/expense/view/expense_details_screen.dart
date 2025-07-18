@@ -1,5 +1,6 @@
 import 'package:daily/entity/expense.dart';
 import 'package:daily/features/expense/data/expense_repo.dart';
+import 'package:daily/features/expense/view/edit_expense_screen.dart';
 import 'package:daily/theme/theme_common.dart';
 import 'package:daily/util/snackbars.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,12 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                     width: 160,
                     height: 60,
                     child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EditExpenseScreen(expense: expense),
+                            )),
                         child: Text(
                           "Edit",
                           style: FontsDaily.titleSubText,

@@ -81,3 +81,63 @@ const Map<String, IconData> incomeIconMap = {
   'Royalties': Icons.library_books,
   'Others': Icons.more_horiz,
 };
+
+//Unused code
+// Map<WeekDays, (double, double)> getWeeklyData(WidgetRef ref) {
+//     final today = DateTime.now();
+
+//     final data = ref
+//         .read(expenseRepoProvider)
+//         .getWeeklyExpenses(today.firstDayOfWeek(), today.lastDayOfWeek());
+
+//     return {
+//       for (final entry in data.entries)
+//         entry.key: (
+//           entry.value
+//               .where((e) => e.type == ExpenseType.expense)
+//               .fold(0.0, (sum, e) => sum + e.amount),
+//           entry.value
+//               .where((e) => e.type == ExpenseType.income)
+//               .fold(0.0, (sum, e) => sum + e.amount)
+//         )
+//     };
+//   }
+
+//   (Map<String, double>, Map<String, double>) getCurrentMonthData(
+//       List<ExpenseEntity> data) {
+//     final Map<String, double> expenseMap = {};
+//     final Map<String, double> incomeMap = {};
+
+//     for (final item in data) {
+//       final category = item.category;
+//       final amount = item.amount;
+
+//       if (item.type == ExpenseType.expense) {
+//         expenseMap[category] = (expenseMap[category] ?? 0) + amount;
+//       } else if (item.type == ExpenseType.income) {
+//         incomeMap[category] = (incomeMap[category] ?? 0) + amount;
+//       }
+//     }
+//     return (expenseMap, incomeMap);
+//   }
+
+//   Map<int, (double, double)> getMonthlyData(WidgetRef ref) {
+//     final data = ref.read(expenseRepoProvider).getExpenses();
+//     final Map<int, List<ExpenseEntity>> monthlyExpenses = {
+//       for (var i = 1; i < 13; i++) i: [],
+//     };
+//     for (final expense in data) {
+//       monthlyExpenses[expense.date.month]?.add(expense);
+//     }
+//     return {
+//       for (final entry in monthlyExpenses.entries)
+//         entry.key: (
+//           entry.value
+//               .where((e) => e.type == ExpenseType.expense)
+//               .fold(0.0, (sum, e) => sum + e.amount),
+//           entry.value
+//               .where((e) => e.type == ExpenseType.income)
+//               .fold(0.0, (sum, e) => sum + e.amount)
+//         )
+//     };
+//   }

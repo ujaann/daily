@@ -1,4 +1,3 @@
-import 'package:daily/util/custom_keyboard.dart';
 import 'package:flutter/material.dart';
 
 class FloatingNewPage extends StatelessWidget {
@@ -12,7 +11,7 @@ class FloatingNewPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Text(text),
-          CustomKeyboard(),
+          // CustomKeyboard(),
         ],
       ),
     );

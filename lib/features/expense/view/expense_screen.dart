@@ -37,16 +37,23 @@ class ExpenseScreen extends ConsumerWidget {
         valueListenable: box.listenable(),
         builder: (context, box, _) {
           if (box.isEmpty) {
-            return Flexible(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                  Icon(
-                    Icons.sticky_note_2,
-                    size: 40,
-                  ),
-                  Text('No expenses'),
-                ]));
+            return Column(
+              spacing: 100,
+              children: [
+                const ExpenseInfo(
+                  expenses: [],
+                ),
+                Column(
+                  children: [
+                    Icon(
+                      Icons.sticky_note_2,
+                      size: 40,
+                    ),
+                    Text('No expenses'),
+                  ],
+                ),
+              ],
+            );
           }
           final expenses = box.values
               .where((e) =>
@@ -57,17 +64,23 @@ class ExpenseScreen extends ConsumerWidget {
               .toList()
             ..sort((a, b) => b.date.compareTo(a.date));
           if (expenses.isEmpty) {
-            return Flexible(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            return Column(
+              spacing: 100,
               children: [
-                Icon(
-                  Icons.sticky_note_2,
-                  size: 40,
+                const ExpenseInfo(
+                  expenses: [],
                 ),
-                Text('No expenses'),
+                Column(
+                  children: [
+                    Icon(
+                      Icons.sticky_note_2,
+                      size: 40,
+                    ),
+                    Text('No expenses'),
+                  ],
+                ),
               ],
-            ));
+            );
           }
 
           return Column(
