@@ -73,72 +73,88 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     });
   }
 
+  Future<void> _handleRefresh() async {
+    ref.invalidate(weeklyDataProvider);
+    ref.invalidate(currentMonthDataProvider);
+
+    ref.read(chartReadyProvider.notifier).state = false;
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    if (mounted) {
+      ref.read(chartReadyProvider.notifier).state = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final chartReady = ref.watch(chartReadyProvider);
 
     return chartReady
-        ? const _GraphsContent()
+        ? _GraphsContent(onRefresh: _handleRefresh)
         : const Center(
-            child: Text(
-            "Loading...",
-            style: FontsDaily.bigHeadline,
-          ));
+            child: Text("Loading...", style: FontsDaily.bigHeadline));
   }
 }
 
 class _GraphsContent extends ConsumerWidget {
-  const _GraphsContent();
+  final Future<void> Function() onRefresh;
+  const _GraphsContent({required this.onRefresh});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final weeklyExpenses = ref.read(weeklyDataProvider);
-    final currentMonthExpenses = ref.read(currentMonthDataProvider);
+    final weeklyExpenses = ref.watch(weeklyDataProvider);
+    final currentMonthExpenses = ref.watch(currentMonthDataProvider);
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 24),
-          RepaintBoundary(
-            child: BarChartSample2(
-              sunday: weeklyExpenses[WeekDays.sunday] ?? (0.0, 0.0),
-              monday: weeklyExpenses[WeekDays.monday] ?? (0.0, 0.0),
-              tuesday: weeklyExpenses[WeekDays.tuesday] ?? (0.0, 0.0),
-              wednesday: weeklyExpenses[WeekDays.wednesday] ?? (0.0, 0.0),
-              thursday: weeklyExpenses[WeekDays.thursday] ?? (0.0, 0.0),
-              friday: weeklyExpenses[WeekDays.friday] ?? (0.0, 0.0),
-              saturday: weeklyExpenses[WeekDays.saturday] ?? (0.0, 0.0),
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 24),
+            RepaintBoundary(
+              child: BarChartSample2(
+                sunday: weeklyExpenses[WeekDays.sunday] ?? (0.0, 0.0),
+                monday: weeklyExpenses[WeekDays.monday] ?? (0.0, 0.0),
+                tuesday: weeklyExpenses[WeekDays.tuesday] ?? (0.0, 0.0),
+                wednesday: weeklyExpenses[WeekDays.wednesday] ?? (0.0, 0.0),
+                thursday: weeklyExpenses[WeekDays.thursday] ?? (0.0, 0.0),
+                friday: weeklyExpenses[WeekDays.friday] ?? (0.0, 0.0),
+                saturday: weeklyExpenses[WeekDays.saturday] ?? (0.0, 0.0),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            "Monthly expenses & income",
-            style: FontsDaily.bigTitle,
-          ),
-          SizedBox(
-            height: 260 +
-                18 *
-                    max(currentMonthExpenses.$1.length.toDouble(),
-                        currentMonthExpenses.$2.length.toDouble()),
-            child: PageView(
-              children: [
-                RepaintBoundary(
-                  child: currentMonthExpenses.$1.isEmpty
-                      ? Center(
-                          child: Text("No entries", style: FontsDaily.bigTitle))
-                      : PieChartSample2(dataMap: currentMonthExpenses.$1),
-                ),
-                RepaintBoundary(
-                  child: currentMonthExpenses.$2.isEmpty
-                      ? Center(
-                          child: Text("No entries", style: FontsDaily.bigTitle))
-                      : PieChartSample2(dataMap: currentMonthExpenses.$2),
-                ),
-              ],
+            const SizedBox(height: 24),
+            Text(
+              "Monthly expenses & income",
+              style: FontsDaily.bigTitle,
             ),
-          ),
-          const SizedBox(height: 12),
-        ],
+            SizedBox(
+              height: 260 +
+                  18 *
+                      max(currentMonthExpenses.$1.length.toDouble(),
+                          currentMonthExpenses.$2.length.toDouble()),
+              child: PageView(
+                children: [
+                  RepaintBoundary(
+                    child: currentMonthExpenses.$1.isEmpty
+                        ? Center(
+                            child:
+                                Text("No entries", style: FontsDaily.bigTitle))
+                        : PieChartSample2(dataMap: currentMonthExpenses.$1),
+                  ),
+                  RepaintBoundary(
+                    child: currentMonthExpenses.$2.isEmpty
+                        ? Center(
+                            child:
+                                Text("No entries", style: FontsDaily.bigTitle))
+                        : PieChartSample2(dataMap: currentMonthExpenses.$2),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

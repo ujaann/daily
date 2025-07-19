@@ -7,6 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Providers for controllers with autoDispose
+final _passwordShowProvider = StateProvider.autoDispose<bool>((ref) {
+  return false;
+});
+final _confirmPasswordShowProvider = StateProvider.autoDispose<bool>((ref) {
+  return false;
+});
+
 final _usernameControllerProvider =
     Provider.autoDispose<TextEditingController>((ref) {
   final controller = TextEditingController();
@@ -99,6 +106,8 @@ class LoginFormRiverpod extends ConsumerWidget {
       }
     }
 
+    final passwordShow = ref.watch(_passwordShowProvider);
+    final confirmPasswordShow = ref.watch(_confirmPasswordShowProvider);
     return Form(
       key: _formKey,
       child: Column(
@@ -139,8 +148,17 @@ class LoginFormRiverpod extends ConsumerWidget {
             ),
           TextFormField(
             controller: passwordController,
-            decoration: const InputDecoration(labelText: 'Password'),
-            obscureText: true,
+            decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: IconButton(
+                    onPressed: () {
+                      ref.read(_passwordShowProvider.notifier).state =
+                          !ref.read(_passwordShowProvider);
+                    },
+                    icon: Icon(
+                      passwordShow ? Icons.visibility : Icons.visibility_off,
+                    ))),
+            obscureText: !passwordShow,
             validator: (value) {
               if (value == null || value.length < 6) {
                 return 'Password must be at least 6 characters';
@@ -151,8 +169,19 @@ class LoginFormRiverpod extends ConsumerWidget {
           if (!isLogin)
             TextFormField(
               controller: confirmController,
-              decoration: const InputDecoration(labelText: 'Confirm Password'),
-              obscureText: true,
+              decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  suffixIcon: IconButton(
+                      onPressed: () {
+                        ref.read(_confirmPasswordShowProvider.notifier).state =
+                            !ref.read(_confirmPasswordShowProvider);
+                      },
+                      icon: Icon(
+                        confirmPasswordShow
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ))),
+              obscureText: !confirmPasswordShow,
               validator: (value) {
                 if (isLogin) return null;
                 if (value != passwordController.text) {
